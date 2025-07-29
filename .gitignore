@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+
+# Virtual environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# VSCode / IDE settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+
+# Python egg files
+*.egg
+*.egg-info/
+dist/
+build/
+*.manifest
+
+# Pipenv / Poetry / Hatch / pyenv
+Pipfile
+Pipfile.lock
+poetry.lock
+.poetry/
+.hatch/
+.python-version
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Tests & coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# Mypy / Pyright / Pylint / Ruff
+.mypy_cache/
+.pyright/
+.pylint.d/
+ruff_cache/
+
+# Uvicorn reload artifacts
+*.reload
+
+# Compiled FastAPI OpenAPI docs (optional)
+openapi.json
