@@ -64,3 +64,5 @@ ruff_cache/
 
 # Compiled FastAPI OpenAPI docs (optional)
 openapi.json
+
+/wardmonitor.db

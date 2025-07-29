@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>WardMonitor Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        h1 { text-align: center; }
+        .region {
+            margin-bottom: 40px;
+        }
+        .ward {
+            margin-bottom: 20px;
+        }
+        .plots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .plot-card {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .plot-size {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .plot-price {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>WardMonitor Dashboard</h1>
+
+    <label style="display: block; margin-bottom: 20px; text-align: center;">
+        <input type="checkbox" id="availability-toggle" />
+        Show only available plots
+    </label>
+
+    {% for region in regions %}
+    <div class="region">
+        <h2>Region: {{ region.region_name }}</h2>
+        {% for ward in region.wards %}
+        <div class="ward">
+            <h3>Ward {{ ward.ward_id }}</h3>
+            <div class="plots">
+                {% for plot in ward.plots %}
+                <div class="plot-card {% if not plot.available %}unavailable{% endif %}">
+                    <div>Plot #: {{ plot.plot_number }}</div>
+                    <div class="plot-size">Size: {{ plot.size }}</div>
+                    {% if plot.available %}
+                      <div class="plot-price">{{ "{:,}".format(plot.price) }} gil</div>
+                    {% else %}
+                      <div style="color: red; font-weight: bold;">Unavailable</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <script>
+        document.getElementById("availability-toggle").addEventListener("change", function () {
+            const onlyAvailable = this.checked;
+            document.querySelectorAll(".plot-card").forEach(card => {
+                const isUnavailable = card.classList.contains("unavailable");
+                card.style.display = (onlyAvailable && isUnavailable) ? "none" : "block";
+            });
+        });
+    </script>
+</body>
+
+</html>
