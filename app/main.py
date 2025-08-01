@@ -36,6 +36,9 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 async def receive_region(region: Region, db: Session = Depends(get_db)):
     logger.info(f"Received data for region: {region.region_name}")
 
+    if "Unknown" in region.region_name:
+        return {"status": "nok", "received": region.region_name}
+
     # Try to get existing region
     db_region = db.query(RegionDB).filter(RegionDB.region_name == region.region_name).first()
     if not db_region:
@@ -44,10 +47,20 @@ async def receive_region(region: Region, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_region)
 
-    # Remove old wards and plots for this region (replace with fresh data)
-    for ward in db_region.wards:
-        db.delete(ward)
-    db.commit()
+    for incoming_ward in region.wards:
+        # Check if this specific ward exists
+        existing_ward = (
+            db.query(WardDB)
+            .filter(WardDB.region_id == db_region.id, WardDB.ward_id == incoming_ward.ward_id)
+            .first()
+        )
+
+        # If it exists, delete it and its plots
+        if existing_ward:
+            for plot in existing_ward.plots:
+                db.delete(plot)
+            db.delete(existing_ward)
+            db.commit()
 
     # Insert new wards and plots
     for ward in region.wards:
