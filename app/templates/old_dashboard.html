@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>WardMonitor Dashboard</title>
+
+    <!-- 🕶️ Apply dark mode immediately, hide body to avoid flicker -->
+    <script>
+        (function () {
+            const cookies = document.cookie.split("; ").reduce((acc, val) => {
+                const [k, v] = val.split("="); acc[k] = v; return acc;
+            }, {});
+            if (cookies.darkMode === "true") {
+                document.documentElement.classList.add("dark-mode");
+            }
+            document.documentElement.style.display = "none";
+        })();
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #f4f6fa;
+            --text-color: #333;
+            --card-bg: #fff;
+            --navbar-bg: #ffffffdd;
+            --navbar-border: #ccc;
+            --border-available: #4caf50;
+            --border-unavailable: #e74c3c;
+            --price-color: #2e7d32;
+            --status-color: #e74c3c;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --btn-bg: #4caf50;
+            --btn-hover-bg: #45a049;
+            --btn-color: white;
+        }
+
+        .dark-mode body,
+        body.dark {
+            --bg-color: #1e1e1e;
+            --text-color: #f5f5f5;
+            --card-bg: #2c2c2c;
+            --navbar-bg: #2c2c2cdd;
+            --navbar-border: #444;
+            --border-available: #66bb6a;
+            --border-unavailable: #ef5350;
+            --price-color: #81c784;
+            --status-color: #ef5350;
+            --shadow: rgba(255, 255, 255, 0.05);
+            --btn-bg: #66bb6a;
+            --btn-hover-bg: #57a35a;
+            --btn-color: white;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            transition: none;
+        }
+
+        .navbar {
+                background: var(--navbar-bg);
+                border-bottom: 1px solid var(--navbar-border);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 14px 20px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                backdrop-filter: blur(4px);
+            }
+
+            .navbar h1 {
+                font-size: 1.4rem;
+                margin: 0;
+            }
+
+            .navbar-controls {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .dark-toggle {
+                display: flex;
+                align-items: center;
+            }
+
+            .toggle-slider {
+                position: relative;
+                width: 50px;
+                height: 26px;
+                background: #787474;
+                border-radius: 50px;
+                cursor: pointer;
+                transition: background 0.3s;
+                margin-left: 10px;
+            }
+
+            .toggle-slider input {
+                display: none;
+            }
+
+            .slider-thumb {
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 22px;
+                height: 22px;
+                background: yellow;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+            }
+
+            #dark-toggle:checked + .slider-thumb {
+                left: 26px;
+                background: white;
+                color: white;
+            }
+
+            .slider-thumb::before {
+                content: "☀️";
+            }
+
+            #dark-toggle:checked + .slider-thumb::before {
+                content: "🌙";
+            }
+
+            /* Export button style */
+            #export-json {
+                background-color: var(--btn-bg);
+                border: none;
+                color: var(--btn-color);
+                padding: 8px 14px;
+                font-size: 0.9rem;
+                border-radius: 6px;
+                cursor: pointer;
+                box-shadow: 0 2px 6px var(--shadow);
+                transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            #export-json:hover {
+                background-color: var(--btn-hover-bg);
+                box-shadow: 0 4px 12px var(--shadow);
+            }
+
+            #controls {
+                text-align: center;
+                margin: 20px 0 30px;
+            }
+
+            .toggle-label {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 0.95rem;
+            }
+
+            /* 🔴🟢 Redesigned Availability Toggle */
+            .availability-switch {
+                position: relative;
+                display: inline-block;
+                width: 50px;
+                height: 26px;
+            }
+
+            .availability-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .availability-slider {
+                background-color: #e74c3c;
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                transition: background-color 0.4s;
+                border-radius: 34px;
+            }
+
+            .availability-slider::before {
+                content: "🔴";
+                position: absolute;
+                height: 22px;
+                width: 22px;
+                left: 2px;
+                bottom: 2px;
+                background-color: white;
+                border-radius: 50%;
+                transition: transform 0.4s, content 0.4s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+            }
+
+            .availability-switch input:checked + .availability-slider {
+                background-color: #4caf50;
+            }
+
+            .availability-switch input:checked + .availability-slider::before {
+                transform: translateX(24px);
+                content: "🟢";
+            }
+
+            hr {
+                border: none;
+                border-top: 1px solid #ccc;
+                margin: 40px 0;
+            }
+
+            .region {
+                padding: 0 20px;
+            }
+
+            .region h2 {
+                font-size: 1.4em;
+                margin-bottom: 16px;
+            }
+
+            .ward {
+                margin-bottom: 30px;
+            }
+
+            .ward h3 {
+                margin-bottom: 8px;
+                font-size: 1.2em;
+            }
+
+            .plots {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 10px;
+            }
+
+            .plot-card {
+                background: var(--card-bg);
+                border-radius: 10px;
+                padding: 14px 16px;
+                box-shadow: 0 2px 6px var(--shadow);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                border-left: 4px solid transparent;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+
+            .plot-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px var(--shadow);
+            }
+
+            .plot-card.available {
+                border-left-color: var(--border-available);
+            }
+
+            .plot-card.unavailable {
+                border-left-color: var(--border-unavailable);
+                color: #999;
+            }
+
+            .plot-number {
+                font-weight: 600;
+                font-size: 1rem;
+            }
+
+            .plot-size {
+                font-size: 0.9rem;
+                color: #777;
+            }
+
+            .plot-price {
+                font-weight: bold;
+                font-size: 1rem;
+                color: var(--price-color);
+            }
+
+            .plot-status {
+                font-size: 0.85rem;
+                font-weight: bold;
+                color: var(--status-color);
+            }
+
+            .plot-number::before {
+                content: "📍 ";
+            }
+
+            .plot-tenant-type::before {
+                content: "👥 ";
+            }
+
+            .plot-size::before {
+                content: "📐 ";
+            }
+
+            .plot-price::before {
+                content: "💰 ";
+            }
+
+            .plot-status::before {
+                content: "❌ ";
+            }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <h1>🏘️ WardMonitor</h1>
+        <div class="navbar-controls">
+            <button id="export-json" title="Export data as JSON">Export Data (JSON)</button>
+            <div class="dark-toggle">
+                <label class="toggle-label">
+                    <div class="toggle-slider">
+                        <input type="checkbox" id="dark-toggle" />
+                        <div class="slider-thumb"></div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <label class="toggle-label">
+            <span>Show only available plots</span>
+            <label class="availability-switch">
+                <input type="checkbox" id="availability-toggle" />
+                <span class="availability-slider"></span>
+            </label>
+        </label>
+    </div>
+
+    {% for region in regions %}
+    <div class="region">
+        <h2>{{ region.region_name }}</h2>
+        {% for ward in region.wards %}
+        <div class="ward">
+            <h3>Ward {{ ward.ward_id }}</h3>
+            <div class="plots">
+                {% for plot in ward.plots %}
+                <div class="plot-card {% if plot.available %}available{% else %}unavailable{% endif %}">
+                    <div class="plot-number">Plot #{{ plot.plot_number }}</div>
+                    <div class="plot-tenant-type">{{ plot.tenant_type }}</div>
+                    <div class="plot-size">Size: {{ plot.size }}</div>
+                    {% if plot.available %}
+                    <div class="plot-price">{{ "{:,}".format(plot.price) }} gil</div>
+                    {% else %}
+                    <div class="plot-status">Unavailable</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if not loop.last %}
+    <hr />
+    {% endif %}
+    {% endfor %}
+
+    <script>
+        // Cookie helpers
+        function setCookie(name, value, days = 365) {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+        }
+
+        function getCookie(name) {
+            return document.cookie.split("; ").reduce((r, v) => {
+                const parts = v.split("=");
+                return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+            }, null);
+        }
+
+        const darkToggle = document.getElementById("dark-toggle");
+        const availToggle = document.getElementById("availability-toggle");
+
+        // Apply cookie states
+        if (getCookie("darkMode") === "true") {
+            darkToggle.checked = true;
+            document.body.classList.add("dark");
+        }
+
+        if (getCookie("showAvailableOnly") === "true") {
+            availToggle.checked = true;
+            document.querySelectorAll(".plot-card.unavailable").forEach(entry => {
+                entry.style.display = "none";
+            });
+            document.querySelectorAll(".ward").forEach(wardEl => {
+                const visible = Array.from(wardEl.querySelectorAll(".plot-card"))
+                    .filter(p => p.style.display !== "none");
+                wardEl.style.display = visible.length === 0 ? "none" : "block";
+            });
+        }
+
+        // Save on toggle change
+        darkToggle.addEventListener("change", function () {
+            document.body.classList.toggle("dark", this.checked);
+            setCookie("darkMode", this.checked);
+        });
+
+        availToggle.addEventListener("change", function () {
+            const onlyAvailable = this.checked;
+            document.querySelectorAll(".plot-card").forEach(entry => {
+                const isUnavailable = entry.classList.contains("unavailable");
+                entry.style.display = onlyAvailable && isUnavailable ? "none" : "flex";
+            });
+
+            document.querySelectorAll(".ward").forEach(wardEl => {
+                const visible = Array.from(wardEl.querySelectorAll(".plot-card"))
+                    .filter(p => p.style.display !== "none");
+                wardEl.style.display = visible.length === 0 ? "none" : "block";
+            });
+
+            setCookie("showAvailableOnly", this.checked);
+        });
+
+        // Export JSON
+        document.getElementById("export-json").addEventListener("click", () => {
+            const regions = [];
+            document.querySelectorAll(".region").forEach((regionEl) => {
+                const regionName = regionEl.querySelector("h2").textContent.trim();
+                const wards = [];
+                regionEl.querySelectorAll(".ward").forEach((wardEl) => {
+                    const wardId = wardEl.querySelector("h3").textContent.trim().replace("Ward ", "");
+                    const plots = [];
+                    wardEl.querySelectorAll(".plot-card").forEach((plotEl) => {
+                        const available = plotEl.classList.contains("available");
+                        const plotNumber = plotEl.querySelector(".plot-number")?.textContent.replace("Plot #", "").trim();
+                        const tenantType = plotEl.querySelector(".plot-tenant-type")?.textContent.trim();
+                        const sizeText = plotEl.querySelector(".plot-size")?.textContent.replace("Size: ", "").trim();
+                        const priceEl = plotEl.querySelector(".plot-price");
+                        const price = priceEl ? priceEl.textContent.replace("gil", "").trim().replace(/,/g, "") : null;
+                        plots.push({
+                            plot_number: plotNumber,
+                            tenant_type: tenantType,
+                            size: sizeText,
+                            available: available,
+                            price: price ? Number(price) : null,
+                        });
+                    });
+                    wards.push({
+                        ward_id: wardId,
+                        plots: plots,
+                    });
+                });
+                regions.push({
+                    region_name: regionName,
+                    wards: wards,
+                });
+            });
+
+            const dataStr = JSON.stringify(regions, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "wardmonitor_data.json";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        });
+
+        // Final fade-in
+        window.addEventListener("DOMContentLoaded", () => {
+            document.documentElement.style.display = "";
+            document.body.style.transition = "background 0.3s, color 0.3s";
+        });
+    </script>
+</body>
+</html>

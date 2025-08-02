@@ -34,7 +34,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/ward-update")
 async def receive_region(region: Region, db: Session = Depends(get_db)):
-    print(region)
     logger.info(f"Received data for region: {region.region_name}")
 
     if "Unknown" in region.region_name:
