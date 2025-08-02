@@ -3,6 +3,7 @@ from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
+from starlette.responses import JSONResponse
 
 from app.database import engine, SessionLocal, Base
 from app.logger import logger
@@ -30,6 +31,39 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         joinedload(RegionDB.wards).joinedload(WardDB.plots)
     ).all()
     return templates.TemplateResponse("dashboard.html", {"request": request, "regions": regions})
+
+
+@app.get("/all-plots")
+def get_all_plots(db: Session = Depends(get_db)):
+    regions = db.query(RegionDB).all()
+
+    result = []
+    for region in regions:
+        region_data = {
+            "region_name": region.region_name,
+            "wards": []
+        }
+
+        for ward in region.wards:
+            ward_data = {
+                "ward_id": ward.ward_id,
+                "plots": []
+            }
+
+            for plot in ward.plots:
+                ward_data["plots"].append({
+                    "plot_number": plot.plot_number,
+                    "price": plot.price,
+                    "size": plot.size,
+                    "available": plot.available,
+                    "tenant_type": getattr(plot, "tenant_type", None)
+                })
+
+            region_data["wards"].append(ward_data)
+
+        result.append(region_data)
+
+    return JSONResponse(content=result)
 
 
 @app.post("/ward-update")
