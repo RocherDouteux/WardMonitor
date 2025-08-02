@@ -298,6 +298,10 @@
                 content: "📍 ";
             }
 
+            .plot-tenant-type::before {
+                content: "👥 ";
+            }
+
             .plot-size::before {
                 content: "📐 ";
             }
@@ -348,6 +352,7 @@
                 {% for plot in ward.plots %}
                 <div class="plot-card {% if plot.available %}available{% else %}unavailable{% endif %}">
                     <div class="plot-number">Plot #{{ plot.plot_number }}</div>
+                    <div class="plot-tenant-type">{{ plot.tenant_type }}</div>
                     <div class="plot-size">Size: {{ plot.size }}</div>
                     {% if plot.available %}
                     <div class="plot-price">{{ "{:,}".format(plot.price) }} gil</div>
@@ -434,11 +439,13 @@
                     wardEl.querySelectorAll(".plot-card").forEach((plotEl) => {
                         const available = plotEl.classList.contains("available");
                         const plotNumber = plotEl.querySelector(".plot-number")?.textContent.replace("Plot #", "").trim();
+                        const tenantType = plotEl.querySelector(".plot-tenant-type")?.textContent.trim();
                         const sizeText = plotEl.querySelector(".plot-size")?.textContent.replace("Size: ", "").trim();
                         const priceEl = plotEl.querySelector(".plot-price");
                         const price = priceEl ? priceEl.textContent.replace("gil", "").trim().replace(/,/g, "") : null;
                         plots.push({
                             plot_number: plotNumber,
+                            tenant_type: tenantType,
                             size: sizeText,
                             available: available,
                             price: price ? Number(price) : null,

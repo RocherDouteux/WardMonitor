@@ -6,6 +6,7 @@ class Plot(BaseModel):
     price: int
     size: str  # "S", "M", or "L"
     available: bool = True
+    tenant_type: str
 
 class Ward(BaseModel):
     ward_id: int

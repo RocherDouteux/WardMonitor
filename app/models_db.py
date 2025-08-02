@@ -23,5 +23,7 @@ class PlotDB(Base):
     price = Column(Integer)
     size = Column(String)
     available = Column(Boolean, default=True)
+    tenant_type = Column(String)
     ward_id = Column(Integer, ForeignKey("wards.id"))
     ward = relationship("WardDB", back_populates="plots")
+

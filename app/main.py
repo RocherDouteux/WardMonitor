@@ -34,6 +34,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/ward-update")
 async def receive_region(region: Region, db: Session = Depends(get_db)):
+    print(region)
     logger.info(f"Received data for region: {region.region_name}")
 
     if "Unknown" in region.region_name:
@@ -75,7 +76,8 @@ async def receive_region(region: Region, db: Session = Depends(get_db)):
                 price=plot.price,
                 size=plot.size,
                 available=plot.available,
-                ward=db_ward
+                ward=db_ward,
+                tenant_type = plot.tenant_type,
             )
             db.add(db_plot)
         db.commit()
